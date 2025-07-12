@@ -1,0 +1,141 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neo Bank - Predicción de Churn</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #6A0DAD, #9B30FF);
+            color: white;
+            overflow-x: hidden;
+        }
+        .container {
+            max-width: 400px;
+            margin: 60px auto;
+            background: rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            backdrop-filter: blur(10px);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 25px;
+            font-weight: 700;
+        }
+        label {
+            font-weight: 600;
+            margin-top: 10px;
+            display: block;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            font-size: 1rem;
+        }
+        button {
+            background-color: #9B30FF;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 1rem;
+            width: 100%;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background-color: #6A0DAD;
+        }
+        .result-card {
+            background: rgba(255,255,255,0.15);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: left;
+        }
+        .marquee {
+            width: 100%;
+            overflow: hidden;
+            white-space: nowrap;
+            box-sizing: border-box;
+            animation: marquee 15s linear infinite;
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 0.9rem;
+            background: rgba(255,255,255,0.1);
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 30px;
+            text-align: center;
+        }
+        @keyframes marquee {
+            0% { transform: translate(100%, 0); }
+            100% { transform: translate(-100%, 0); }
+        }
+        a { color: #FFD700; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔮 Neo Bank - Churn Predictor</h1>
+        <form id="predict-form">
+            <label for="age">Edad del Cliente:</label>
+            <input type="number" id="age" placeholder="Ej: 28" required>
+
+            <label for="avg_amount">Monto Promedio de Transacción (USD):</label>
+            <input type="number" id="avg_amount" placeholder="Ej: 125.50" required>
+
+            <label for="nb_transactions">Número de Transacciones:</label>
+            <input type="number" id="nb_transactions" placeholder="Ej: 10" required>
+
+            <button type="submit">Calcular Riesgo de Churn</button>
+        </form>
+        <div id="result"></div>
+        <div class="marquee">
+            🚀 Proyecto desarrollado por: 
+            <a href="https://github.com/Yuki-Rit0" target="_blank">Aron Ponce</a> |
+            <a href="https://github.com/EvelynRoHz" target="_blank">Evelyn Rodriguez</a> |
+            <a href="https://github.com/Brian102586" target="_blank">Brian Donado</a> |
+            <a href="https://github.com/JSevillaAguinaga" target="_blank">Jose Sevilla</a> 🚀
+        </div>
+    </div>
+    <script>
+        document.getElementById("predict-form").addEventListener("submit", async function(e){
+            e.preventDefault();
+            const age = document.getElementById("age").value;
+            const avg_amount = document.getElementById("avg_amount").value;
+            const nb_transactions = document.getElementById("nb_transactions").value;
+            const response = await fetch("http://127.0.0.1:5000/predict", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    age: parseInt(age),
+                    avg_amount: parseFloat(avg_amount),
+                    nb_transactions: parseInt(nb_transactions)
+                })
+            });
+            const data = await response.json();
+            document.getElementById("result").innerHTML = `
+                <div class="result-card">
+                    <h3>📊 Resultado</h3>
+                    <p><strong>Perfil Detectado:</strong> ${data.perfil_detectado}</p>
+                    <p><strong>Probabilidad de Churn:</strong> ${data.churn_probabilidad}</p>
+                    <p><strong>Nivel de Riesgo:</strong> ${data.nivel_riesgo}</p>
+                    <h4>Recomendaciones:</h4>
+                    <ul>${data.recomendaciones.map(rec => `<li>${rec}</li>`).join('')}</ul>
+                </div>
+            `;
+        });
+    </script>
+</body>
+</html>
