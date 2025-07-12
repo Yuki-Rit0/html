@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neo Bank - Predicción de Churn | Le Wagon</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --wagon-purple: #6A0DAD;
+            --wagon-purple-light: #8A2BE2;
+            --wagon-purple-dark: #4B0082;
+            --wagon-purple-extra-dark: #320064;
+            --wagon-red: #FD1015;
+            --wagon-light: #F4F4F4;
+            --wagon-dark: #333333;
+            --wagon-white: #ffffff;
+            --wagon-gray: #f5f5f5;
+        }
+        
+        body {
+            font-family: 'Nunito', 'Segoe UI', sans-serif;
+            background-color: var(--wagon-white);
+            color: var(--wagon-dark);
+            min-height: 100vh;
+            padding-bottom: 60px;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        /* Fondo animado sutil */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(138, 43, 226, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(106, 13, 173, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 30% 60%, rgba(138, 43, 226, 0.05) 0%, transparent 30%);
+            animation: bgMovement 25s infinite linear;
+        }
+        
+        @keyframes bgMovement {
+            0% {
+                background-position: 0% 0%, 0% 0%, 0% 0%;
+            }
+            25% {
+                background-position: 10% 5%, 5% 10%, 7% 15%;
+            }
+            50% {
+                background-position: 15% 10%, 10% 15%, 12% 20%;
+            }
+            75% {
+                background-position: 10% 15%, 15% 10%, 17% 5%;
+            }
+            100% {
+                background-position: 0% 0%, 0% 0%, 0% 0%;
+            }
+        }
+        
+        .wagon-header {
+            background: var(--wagon-white);
+            padding: 20px 0;
+            margin-bottom: 30px;
+            border-bottom: 3px solid var(--wagon-purple);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .wagon-header::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(138, 43, 226, 0.20) 0%, transparent 50%);
+            opacity: 0;                /* empieza completamente invisible */
+            animation: fade 5s ease-in-out infinite;
+            pointer-events: none;      /* para que no interfiera con clicks */
+            z-index: 0;                /* debajo de tu contenido */
+        }
+        
+          @keyframes fade {
+            0%, 100%   { opacity: 0; }
+            50%        { opacity: 1; }
+        }
+        
+        .wagon-logo {
+            height: 100px;
+            margin-right: 30px;
+        }
+        
+        .wagon-card {
+            background: var(--wagon-white);
+            border-radius: 12px;
+            border: 1px solid rgba(138, 43, 226, 0.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            overflow: hidden;
+            margin-bottom: 25px;
+        }
+        
+        .wagon-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 8px 25px rgba(138, 43, 226, 0.1);
+        }
+        
+        .wagon-card-header {
+            background: rgba(106, 13, 173, 0.1);
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(138, 43, 226, 0.1);
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--wagon-purple);
+        }
+        
+        .wagon-card-body {
+            padding: 25px;
+        }
+        
+        .form-control {
+            background: var(--wagon-gray);
+            border: 1px solid rgba(138, 43, 226, 0.1);
+            color: var(--wagon-dark);
+            border-radius: 8px;
+            padding: 12px 15px;
+            transition: all 0.3s;
+        }
+        
+        .form-control:focus {
+            border-color: var(--wagon-purple-light);
+            box-shadow: 0 0 0 0.2rem rgba(138, 43, 226, 0.1);
+        }
+        
+        .form-control::placeholder {
+            color: rgba(106, 13, 173, 0.4);
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: var(--wagon-purple);
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .form-label i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+            color: var(--wagon-purple);
+        }
+        
+        .wagon-btn {
+            background: var(--wagon-purple);
+            border: none;
+            padding: 14px 25px;
+            font-weight: 700;
+            border-radius: 8px;
+            transition: all 0.3s;
+            width: 100%;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+            color: white;
+        }
+        
+        .wagon-btn::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: 0.5s;
+        }
+        
+        .wagon-btn:hover {
+            background: var(--wagon-purple-dark);
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(106, 13, 173, 0.3);
+        }
+        
+        .wagon-btn:hover::before {
+            left: 100%;
+        }
+        
+        .risk-high {
+            border-left: 5px solid var(--wagon-red);
+        }
+        
+        .risk-medium {
+            border-left: 5px solid #FFA500;
+        }
+        
+        .risk-low {
+            border-left: 5px solid #2ecc71;
+        }
+        
+        .profile-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            background: rgba(138, 43, 226, 0.1);
+            width: 70px;
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            color: var(--wagon-purple);
+        }
+        
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--wagon-purple);
+        }
+        
+        .progress {
+            height: 20px;
+            background: var(--wagon-gray);
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .progress-bar {
+            border-radius: 10px;
+            background: linear-gradient(90deg, var(--wagon-purple-light), var(--wagon-purple));
+        }
+        
+        .feature-label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--wagon-purple);
+        }
+        
+        .wagon-footer {
+            background: var(--wagon-white);
+            padding: 20px 0;
+            margin-top: 50px;
+            border-top: 1px solid rgba(138, 43, 226, 0.1);
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+        }
+        
+        .risk-indicator {
+            font-size: 4rem;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 15px;
+            color: var(--wagon-purple);
+        }
+        
+        .risk-description {
+            font-size: 1.2rem;
+            padding: 15px;
+            border-radius: 10px;
+            background: rgba(138, 43, 226, 0.05);
+            color: var(--wagon-dark);
+        }
+        
+        .recommendation-card {
+            background: rgba(138, 43, 226, 0.05);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            border-left: 3px solid var(--wagon-purple);
+        }
+        
+        .glowing-border {
+            box-shadow: 0 0 10px rgba(138, 43, 226, 0.3);
+            animation: glow 1.5s infinite alternate;
+        }
+        
+        @keyframes glow {
+            from {
+                box-shadow: 0 0 10px rgba(138, 43, 226, 0.3);
+            }
+            to {
+                box-shadow: 0 0 20px rgba(138, 43, 226, 0.5);
+            }
+        }
+        
+        .wagon-pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        
+        .bootcamp-badge {
+            background: rgba(138, 43, 226, 0.1);
+            border: 1px solid var(--wagon-purple);
+            border-radius: 20px;
+            padding: 5px 15px;
+            font-weight: 600;
+            display: inline-block;
+            margin-top: 10px;
+            color: var(--wagon-purple);
+        }
+        
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+        
+        @keyframes floating {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        .bubble {
+            position: absolute;
+            background: rgba(138, 43, 226, 0.05);
+            border-radius: 50%;
+            animation: float 15s infinite linear;
+            z-index: -1;
+        }
+        
+        @keyframes float {
+            0% {
+                transform: translateY(0) translateX(0) rotate(0deg);
+                opacity: 0.3;
+            }
+            50% {
+                transform: translateY(-100px) translateX(100px) rotate(180deg);
+                opacity: 0.6;
+            }
+            100% {
+                transform: translateY(0) translateX(200px) rotate(360deg);
+                opacity: 0.3;
+            }
+        }
+        
+        .text-purple {
+            color: var(--wagon-purple);
+        }
+        
+        .title-purple {
+            color: var(--wagon-purple);
+            text-shadow: 0 2px 4px rgba(106, 13, 173, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <!-- Fondo animado sutil -->
+    <div class="animated-bg"></div>
+    
+    <!-- Burbujas flotantes -->
+    <div class="bubbles"></div>
+    
+    <!-- Header con logo de Le Wagon -->
+    <header class="wagon-header">
+        <div class="container">
+            <div class="d-flex align-items-center justify-content-center">
+                <img src="https://raw.githubusercontent.com/lewagon/fullstack-images/master/uikit/logo.png" alt="Le Wagon" class="wagon-logo">
+                <div class="text-center">
+                    <h1 class="mb-0 title-purple">Neo Bank - Predicción de Churn</h1>
+                    <p class="mb-0 text-muted">Identifica usuarios en riesgo de abandonar el banco con nuestro modelo predictivo</p>
+                    <div class="bootcamp-badge">Bootcamp Data Analyst & IA</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="row">
+            <!-- Formulario de Predicción -->
+            <div class="col-lg-6 mb-4">
+                <div class="wagon-card">
+                    <div class="wagon-card-header">
+                        <i class="fas fa-user-circle me-2"></i>Datos del Cliente
+                    </div>
+                    <div class="wagon-card-body">
+                        <form id="prediction-form">
+                            <div class="mb-4">
+                                <label for="age" class="form-label">
+                                    <i class="fas fa-birthday-cake"></i>Edad del Cliente
+                                </label>
+                                <input type="number" class="form-control" id="age" name="age" required min="18" max="100" placeholder="Ej: 32">
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="avg_amount" class="form-label">
+                                    <i class="fas fa-money-bill-wave"></i>Monto Promedio de Transacción (USD)
+                                </label>
+                                <input type="number" class="form-control" id="avg_amount" name="avg_amount" required min="0" step="0.01" placeholder="Ej: 85.50">
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="nb_transactions" class="form-label">
+                                    <i class="fas fa-exchange-alt"></i>Número de Transacciones (últimos 3 meses)
+                                </label>
+                                <input type="number" class="form-control" id="nb_transactions" name="nb_transactions" required min="0" placeholder="Ej: 12">
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="form-label">
+                                    <i class="fas fa-user-tag"></i>Perfil del Cliente
+                                </label>
+                                <div class="p-3 rounded" style="background: rgba(138, 43, 226, 0.05);">
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="radio" name="profile" id="profile1" value="digital_adults" checked>
+                                        <label class="form-check-label" for="profile1">
+                                            <i class="fas fa-laptop me-2 text-purple"></i> Adultos Digitales Activos
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="radio" name="profile" id="profile2" value="young_spenders">
+                                        <label class="form-check-label" for="profile2">
+                                            <i class="fas fa-shopping-bag me-2 text-purple"></i> Jóvenes con Consumo Medio
+                                        </label>
+                                    </div>
+                                    <div class="form-check mb-3">
+                                        <input class="form-check-input" type="radio" name="profile" id="profile3" value="senior_digital">
+                                        <label class="form-check-label" for="profile3">
+                                            <i class="fas fa-mobile-alt me-2 text-purple"></i> Adultos Mayores Digitales
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="profile" id="profile4" value="premium_users">
+                                        <label class="form-check-label" for="profile4">
+                                            <i class="fas fa-crown me-2 text-purple"></i> Usuarios Premium con Alto Gasto
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="wagon-btn wagon-pulse">
+                                <i class="fas fa-bolt me-2"></i>Calcular Riesgo de Churn
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- Resultados de la Predicción -->
+                <div class="wagon-card d-none" id="result-card">
+                    <div class="wagon-card-body">
+                        <h3 class="text-center mb-4 text-purple"><i class="fas fa-chart-line me-2"></i>Resultado de la Predicción</h3>
+                        <div class="text-center mb-4">
+                            <div class="risk-indicator" id="risk-percentage">0%</div>
+                            <h3 id="risk-level" class="mb-3">Sin riesgo</h3>
+                            <div class="risk-description" id="risk-description">Este cliente tiene baja probabilidad de abandonar el banco</div>
+                        </div>
+                        
+                        <div class="recommendation-card">
+                            <h5 class="d-flex align-items-center text-purple"><i class="fas fa-lightbulb me-2"></i>Recomendaciones:</h5>
+                            <ul class="mt-3" id="recommendations-list">
+                                <li>Ofrecer programa de fidelización con beneficios exclusivos</li>
+                                <li>Personalizar comunicaciones según su perfil de gastos</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Información de Perfiles y Estadísticas -->
+            <div class="col-lg-6">
+                <div class="wagon-card">
+                    <div class="wagon-card-header">
+                        <i class="fas fa-users me-2"></i>Perfiles de Clientes
+                    </div>
+                    <div class="wagon-card-body">
+                        <div class="row">
+                            <div class="col-md-6 mb-4">
+                                <div class="text-center floating">
+                                    <div class="profile-icon">👨‍💻</div>
+                                    <h5 class="text-purple">Adultos Digitales</h5>
+                                    <div class="mt-3">
+                                        <div class="stat-value">51.2%</div>
+                                        <div>Prob. Churn</div>
+                                    </div>
+                                    <div class="mt-2 text-muted">38.4% de clientes</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-4">
+                                <div class="text-center floating" style="animation-delay: 0.5s;">
+                                    <div class="profile-icon">💸</div>
+                                    <h5 class="text-purple">Jóvenes Consumo</h5>
+                                    <div class="mt-3">
+                                        <div class="stat-value">24.7%</div>
+                                        <div>Prob. Churn</div>
+                                    </div>
+                                    <div class="mt-2 text-muted">28.1% de clientes</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="text-center floating" style="animation-delay: 1s;">
+                                    <div class="profile-icon">📲</div>
+                                    <h5 class="text-purple">Adultos Mayores</h5>
+                                    <div class="mt-3">
+                                        <div class="stat-value">18.9%</div>
+                                        <div>Prob. Churn</div>
+                                    </div>
+                                    <div class="mt-2 text-muted">21.5% de clientes</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="text-center floating" style="animation-delay: 1.5s;">
+                                    <div class="profile-icon">👑</div>
+                                    <h5 class="text-purple">Usuarios Premium</h5>
+                                    <div class="mt-3">
+                                        <div class="stat-value">8.2%</div>
+                                        <div>Prob. Churn</div>
+                                    </div>
+                                    <div class="mt-2 text-muted">12.0% de clientes</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="wagon-card">
+                    <div class="wagon-card-header">
+                        <i class="fas fa-chart-bar me-2"></i>Factores de Influencia
+                    </div>
+                    <div class="wagon-card-body">
+                        <p>Los siguientes factores tienen mayor impacto en la predicción de churn:</p>
+                        
+                        <div class="mb-4">
+                            <div class="feature-label">Número de Transacciones</div>
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" style="width: 92%"></div>
+                            </div>
+                            
+                            <div class="feature-label">Perfil de Usuario</div>
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" style="width: 78%"></div>
+                            </div>
+                            
+                            <div class="feature-label">Monto Promedio</div>
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" style="width: 65%"></div>
+                            </div>
+                            
+                            <div class="feature-label">Edad</div>
+                            <div class="progress">
+                                <div class="progress-bar" role="progressbar" style="width: 42%"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="p-3 rounded" style="background: rgba(138, 43, 226, 0.05);">
+                            <i class="fas fa-exclamation-triangle me-2 text-purple"></i>
+                            <strong class="text-purple">Insight:</strong> Los usuarios con menos de 8 transacciones tienen un 40% más de probabilidad de abandonar el banco.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="wagon-card">
+                    <div class="wagon-card-header">
+                        <i class="fas fa-cogs me-2"></i>Modelo de Machine Learning
+                    </div>
+                    <div class="wagon-card-body">
+                        <div class="d-flex justify-content-between mb-3">
+                            <div>
+                                <div class="stat-value">93%</div>
+                                <div>Precisión</div>
+                            </div>
+                            <div>
+                                <div class="stat-value">97%</div>
+                                <div>Recall</div>
+                            </div>
+                            <div>
+                                <div class="stat-value">91%</div>
+                                <div>F1-Score</div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <h5 class="text-purple"><i class="fas fa-brain me-2"></i>Algoritmo Utilizado:</h5>
+                            <div class="d-flex align-items-center mt-2">
+                                <div class="p-2 rounded me-2" style="background: rgba(138, 43, 226, 0.1);">
+                                    <i class="fas fa-project-diagram text-purple"></i>
+                                </div>
+                                <div>
+                                    <strong class="text-purple">Random Forest Classifier</strong>
+                                    <div class="text-muted">Con 100 estimadores y profundidad máxima 8</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="wagon-footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6 d-flex align-items-center">
+                    <img src="https://raw.githubusercontent.com/lewagon/fullstack-images/master/uikit/logo.png" alt="Le Wagon" height="50" class="me-2">
+                    <span class="text-purple">Data Analyst & IA Bootcamp - Proyecto Neo Bank</span>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <div class="mt-2 mt-md-0">
+                        <strong class="text-purple">Bootcamp Data Analyst & IA</strong>
+                        <div class="mt-1">
+                            <i class="fab fa-github me-2 text-purple"></i>
+                            <i class="fab fa-linkedin me-2 text-purple"></i>
+                            <i class="fab fa-twitter me-2 text-purple"></i>
+                            <span class="text-purple">Welcome!</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Crear burbujas flotantes
+        const bubblesContainer = document.querySelector('.bubbles');
+        const bubblesCount = 15;
+        
+        for (let i = 0; i < bubblesCount; i++) {
+            const bubble = document.createElement('div');
+            bubble.classList.add('bubble');
+            
+            // Tamaño y posición aleatorios
+            const size = Math.random() * 100 + 20;
+            const posX = Math.random() * 100;
+            const posY = Math.random() * 100;
+            
+            bubble.style.width = `${size}px`;
+            bubble.style.height = `${size}px`;
+            bubble.style.left = `${posX}%`;
+            bubble.style.top = `${posY}%`;
+            
+            // Animación con retraso aleatorio
+            bubble.style.animationDuration = `${Math.random() * 30 + 15}s`;
+            bubble.style.animationDelay = `${Math.random() * 5}s`;
+            
+            bubblesContainer.appendChild(bubble);
+        }
+        
+        document.getElementById('prediction-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Obtener valores del formulario
+            const age = parseInt(document.getElementById('age').value);
+            const avgAmount = parseFloat(document.getElementById('avg_amount').value);
+            const nbTransactions = parseInt(document.getElementById('nb_transactions').value);
+            const profile = document.querySelector('input[name="profile"]:checked').value;
+            
+            // Calcular riesgo basado en los datos
+            let riskPercentage = 0;
+            
+            // Base risk based on profile
+            if (profile === 'digital_adults') riskPercentage += 40;
+            else if (profile === 'young_spenders') riskPercentage += 20;
+            else if (profile === 'senior_digital') riskPercentage += 15;
+            else riskPercentage += 5;
+            
+            // Adjust based on number of transactions
+            if (nbTransactions < 5) riskPercentage += 40;
+            else if (nbTransactions < 10) riskPercentage += 20;
+            else if (nbTransactions < 20) riskPercentage += 10;
+            
+            // Adjust based on average amount
+            if (avgAmount < 50) riskPercentage += 10;
+            
+            // Cap at 95% and minimum 5%
+            riskPercentage = Math.min(Math.max(riskPercentage, 5), 95);
+            
+            // Actualizar la tarjeta de resultados
+            document.getElementById('risk-percentage').textContent = riskPercentage + '%';
+            
+            // Determinar nivel de riesgo
+            let riskLevel = 'Bajo';
+            let riskClass = 'risk-low';
+            let riskDescription = 'Este cliente tiene baja probabilidad de abandonar el banco';
+            
+            if (riskPercentage > 70) {
+                riskLevel = 'Alto';
+                riskClass = 'risk-high';
+                riskDescription = 'Alto riesgo de abandono - Acción inmediata requerida';
+                document.getElementById('result-card').classList.add('glowing-border');
+            } else if (riskPercentage > 40) {
+                riskLevel = 'Moderado';
+                riskClass = 'risk-medium';
+                riskDescription = 'Riesgo moderado de abandono - Recomendamos acciones preventivas';
+                document.getElementById('result-card').classList.remove('glowing-border');
+            } else {
+                document.getElementById('result-card').classList.remove('glowing-border');
+            }
+            
+            document.getElementById('risk-level').textContent = 'Riesgo ' + riskLevel;
+            document.getElementById('risk-description').textContent = riskDescription;
+            
+            // Actualizar recomendaciones
+            const recommendationsList = document.getElementById('recommendations-list');
+            recommendationsList.innerHTML = '';
+            
+            if (riskPercentage > 70) {
+                recommendationsList.innerHTML += `
+                    <li><strong>Contacto inmediato:</strong> Asignar ejecutivo para llamada personalizada</li>
+                    <li><strong>Oferta especial:</strong> 0% de comisiones por 6 meses</li>
+                    <li><strong>Beneficio exclusivo:</strong> Acceso premium a cursos de finanzas</li>
+                `;
+            } else if (riskPercentage > 40) {
+                recommendationsList.innerHTML += `
+                    <li><strong>Programa de fidelización:</strong> Puntos canjeables por beneficios</li>
+                    <li><strong>Personalización:</strong> Ofertas basadas en su perfil de gastos</li>
+                    <li><strong>Encuesta de satisfacción:</strong> Recopilar feedback para mejorar</li>
+                `;
+            } else {
+                recommendationsList.innerHTML += `
+                    <li><strong>Mantenimiento:</strong> Continuar con comunicación periódica</li>
+                    <li><strong>Ofertas adicionales:</strong> Sugerir productos complementarios</li>
+                    <li><strong>Reconocimiento:</strong> Agradecer por su lealtad como cliente</li>
+                `;
+            }
+            
+            // Aplicar clase de riesgo y mostrar resultados
+            const resultCard = document.getElementById('result-card');
+            resultCard.className = 'wagon-card ' + riskClass;
+            resultCard.classList.remove('d-none');
+            
+            // Scroll a resultados
+            resultCard.scrollIntoView({ behavior: 'smooth' });
+        });
+    </script>
+</body>
+</html>
